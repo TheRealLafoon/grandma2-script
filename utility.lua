@@ -20,6 +20,16 @@ function get_exe_handle(exe_number)
     return exeHandle;
 end
 
+-- fonction simple pour nettoyer un nom (enlever guillemets et remplacer espaces par _)
+function sanitize_name(name)
+    if not name then return "noname" end
+    -- enlever guillemets doubles et simples
+    name = name:gsub('"', ''):gsub("'", "")
+    -- remplacer espaces et caractères non-alphanum par underscore
+    name = name:gsub("%s+", "_"):gsub("[^%w_%-]", "_")
+    return name
+end
+
 function get_cue_table(seq_handle)
 	local cue_handle;
 	local getO=gma.show.getobj;
