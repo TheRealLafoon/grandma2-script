@@ -42,9 +42,7 @@ function generate_iterator()
 		gma.echo("executor " .. exe_number .. " is empty");
 		return;
 	end
-		
-	print_obj_property(exe_handle)
-	
+			
 	local seq_name = getP.get(exe_handle, "Name");
 	
 	gma.echo("Sequence name: " .. seq_name);

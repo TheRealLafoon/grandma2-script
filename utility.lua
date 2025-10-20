@@ -4,21 +4,23 @@ function my_print(string)
 gma.echo(string);
 end
 
-function get_object_name(handle)
-	local getO=gma.show.getobj;
-	local obj_name = getO.name(handle);
-	return obj_name;	
+function print_obj_property(handle)
+	local getP = gma.show.property;
+	local amount = getP.amount(handle)
+	gma.echo("property amount: "..amount)
+	for i = 0, amount-1, 1 do
+		text = string.format("property: %s, value: %s", getP.name(handle, i), getP.get(handle, i))
+		gma.echo(text)
+	end 	
 end
 
-function get_seq_handle(name)
-	local seqHandle = gma.show.getobj.handle("sequence " .. name);
-	return seqHandle;
-end
+--function print_obj(handle)
+--	local getO = gma.show.getobj
+--	text = string.format("class: %s, index: %d, number: %d, name: %s, label: %s,)
 
-function get_exe_handle(exe_number)
-    local exeHandle = gma.show.getobj.handle("exe " .. exe_number);
-    return exeHandle;
-end
+-- number:amount            = gma.show.property.amount(number:handle)
+-- string:property_name     = gma.show.property.name(number:handle,number:index)
+-- string:property          = gma.show.property.get(number:handle,number:index/string:property_name)
 
 -- fonction simple pour nettoyer un nom (enlever guillemets et remplacer espaces par _)
 function sanitize_name(name)
