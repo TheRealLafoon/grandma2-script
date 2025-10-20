@@ -1,62 +1,66 @@
 
-function get_exe_sequence(exe_number)
-    local exeHandle = gma.show.getobj.handle("exe " .. exe_number);
-    return exeHandle;
-end
-
-function get_seq_handle(name)
-	local seqHandle = gma.show.getobj.handle("sequence " .. name);
-	return seqHandle;
-end
-
-function get_object_name(handle)
-	local getO=gma.show.getobj;
-	local obj_name = getO.name(handle);
-	return obj_name;	
-end
-
-function get_cue_table(seq_handle)
-	local cue_handle;
-	local getO=gma.show.getobj;
-	local cue_table={};
-	local cue_count = getO.amount(seq_handle)-1;--exlude cue 0
-	gma.echo("cue count " .. cue_count);
-	-- loop through cue list, skip cue 0
-	for i = 1, cue_count, 1 do
-		cue_handle = getO.child(seq_handle, i);
-		cue_table[i] = {name=getO.name(cue_handle), number=getO.number(cue_handle)};
-	end
-	return cue_table;
-end
+--function get_exe_sequence(exe_number)
+--    local exeHandle = gma.show.getobj.handle("exe " .. exe_number);
+--    return exeHandle;
+--end
+--
+--function get_seq_handle(name)
+--	local seqHandle = gma.show.getobj.handle("sequence " .. name);
+--	return seqHandle;
+--end
+--
+--function get_object_name(handle)
+--	local getO=gma.show.getobj;
+--	local obj_name = getO.name(handle);
+--	return obj_name;	
+--end
+--
+--function get_cue_table(seq_handle)
+--	local cue_handle;
+--	local getO=gma.show.getobj;
+--	local cue_table={};
+--	local cue_count = getO.amount(seq_handle)-1;--exlude cue 0
+--	gma.echo("cue count " .. cue_count);
+--	-- loop through cue list, skip cue 0
+--	for i = 1, cue_count, 1 do
+--		cue_handle = getO.child(seq_handle, i);
+--		cue_table[i] = {name=getO.name(cue_handle), number=getO.number(cue_handle)};
+--	end
+--	return cue_table;
+--end
 
 function generate_iterator()
 	-- Ask for Exe
 	local exe_number = gma.textinput("Enter exe number");
 	local seq_handle;
+	local getO=gma.show.getobj;
+	local getP = gma.show.property;
 	
 	-- Verify if exe contains seq and save sequence name
-	local exe_handle = get_exe_sequence(exe_number)
+	local exe_handle = getO.handle("exe ".. exe_number)
 	if (exe_handle == nil) then
 		gma.echo("executor " .. exe_number .. " is empty");
 		return;
 	end
-	local exe_name = get_object_name(exe_handle);
+		
+	print_obj_property(exe_handle)
 	
-	gma.echo("Executor name: " .. exe_name);
-
-	-- remove exe number from sequence name
-	local seq_name = string.gsub(exe_name, exe_number, "");
-	-- remove space
-	seq_name = string.gsub(seq_name, " ", "");
+	local seq_name = getP.get(exe_handle, "Name");
 	
-	-- get executor's sequence handle
-	seq_handle = get_seq_handle(seq_name);
+	gma.echo("Sequence name: " .. seq_name);
 	
+	seq_handle = getO.handle("sequence \""..seq_name.."\"")
+		
+	-- clean name: remove "" or space
+	seq_name = sanitize_name(seq_name)
+	--seq_name = string.gsub(seq_name, " ", "");
+		
 	if (seq_handle == nil) then
 		gma.echo("Error: Could not get sequence handle");
 		return;
 	end
 
+	gma.echo(get_object_name(seq_handle))
 	-- get cue list and cue name
 	local cue_table = get_cue_table(seq_handle);
 
@@ -65,7 +69,7 @@ function generate_iterator()
 	end		
 	
 	-- search for sequence name i_sequence_name
-	local i_seq_name = "i_"..exe_name;
+	local i_seq_name = "i_"..seq_name;
 	i_seq_name = string.gsub(i_seq_name, " ", "_");--remove space
 	i_seq_name = string.gsub(i_seq_name, "%.", "_");-- remove dot
 	local i_seq_handle = get_seq_handle("\""..i_seq_name.."\"");
@@ -87,7 +91,7 @@ function generate_iterator()
 	
 	-- Create one cue for each cue in dest exe
 	for i, cue in ipairs(cue_table) do
-		local cue_name = "\"load_"..cue.name.."_"..exe_name.."\"";
+		local cue_name = "\"load_"..sanitize_name(cue.name).."_"..seq_name.."\"";
 		local cmd_string = "/cmd=\"load cue "..cue.number.." exe "..exe_number.."\"";
 		-- Store cue
 		gma.cmd("store cue " .. i .. "/o seq \"".. i_seq_name.."\"");
